@@ -1,4 +1,4 @@
-package main
+package pgfutter
 
 import (
 	"database/sql"

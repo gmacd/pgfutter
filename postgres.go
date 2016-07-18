@@ -1,4 +1,4 @@
-package main
+package pgfutter
 
 import (
 	"database/sql"
@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/codegangsta/cli"
 	"github.com/kennygrant/sanitize"
 )
 
@@ -53,7 +52,7 @@ func postgresify(identifier string) string {
 		"-": "_",
 		",": "_",
 		"#": "_",
-		
+
 		"[":  "",
 		"]":  "",
 		"{":  "",
@@ -83,18 +82,19 @@ func postgresify(identifier string) string {
 	return str
 }
 
-//parse sql connection string from cli flags
-func parseConnStr(c *cli.Context) string {
+//build sql connection string from arguments
+func ParseConnStr(user, dbname, password, host, port string, useSsl bool) string {
 	otherParams := "sslmode=disable connect_timeout=5"
-	if c.GlobalBool("ssl") {
+	if useSsl {
 		otherParams = "sslmode=require connect_timeout=5"
 	}
-	return fmt.Sprintf("user=%s dbname=%s password='%s' host=%s port=%s %s",
-		c.GlobalString("username"),
-		c.GlobalString("dbname"),
-		c.GlobalString("pass"),
-		c.GlobalString("host"),
-		c.GlobalString("port"),
+	return fmt.Sprintf(
+		"user=%s dbname=%s password='%s' host=%s port=%s %s",
+		user,
+		dbname,
+		password,
+		host,
+		port,
 		otherParams,
 	)
 }
@@ -105,7 +105,7 @@ func createJSONTable(db *sql.DB, schema string, tableName string, column string,
 	tableSchema := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (%s %s)", fullyQualifiedTable, column, dataType)
 
 	statement, err := db.Prepare(tableSchema)
-	return statement, err
+	return statement, fmt.Errorf("Couldn't create table with command: %v  Error: %v", tableSchema, err)
 }
 
 //create table with TEXT columns
@@ -114,10 +114,13 @@ func createTable(db *sql.DB, schema string, tableName string, columns []string) 
 	for i, col := range columns {
 		columnTypes[i] = fmt.Sprintf("%s TEXT", col)
 	}
-	columnDefinitions := strings.Join(columnTypes, ",")
+	columnDefinitions := strings.Join(columnTypes, ", ")
 	fullyQualifiedTable := fmt.Sprintf("%s.%s", schema, tableName)
 	tableSchema := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (%s)", fullyQualifiedTable, columnDefinitions)
 
-	statement, err := db.Prepare(tableSchema)
-	return statement, err
+	if statement, err := db.Prepare(tableSchema); err != nil {
+		return nil, fmt.Errorf("Couldn't create table with command: %v  Error: %v", tableSchema, err)
+	} else {
+		return statement, nil
+	}
 }

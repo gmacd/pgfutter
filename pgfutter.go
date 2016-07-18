@@ -1,6 +1,6 @@
-package main
+package pgfutter
 
-import (
+/*import (
 	"log"
 	"os"
 	"path/filepath"
@@ -177,3 +177,4 @@ func main() {
 
 	app.Run(os.Args)
 }
+*/

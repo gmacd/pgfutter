@@ -1,4 +1,4 @@
-package main
+package pgfutter
 
 import (
 	"bufio"
@@ -127,11 +127,8 @@ func importJSON(filename string, connStr string, schema string, tableName string
 		}
 		defer file.Close()
 
-		bar := NewProgressBar(file)
-		reader := bufio.NewReader(io.TeeReader(file, bar))
-		bar.Start()
+		reader := bufio.NewReader(file)
 		err, success, failed = copyJSONRows(i, reader, ignoreErrors)
-		bar.Finish()
 	}
 
 	if err != nil {
