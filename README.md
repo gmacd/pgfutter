@@ -2,6 +2,12 @@
 
 <img align="right" alt="elephant" src="elephant.jpg" />
 
+## Fork?
+
+This fork is intended to take the original pgfutter app and turn it into a package that can be used by other Go code.
+
+## Description
+
 Import CSV and JSON into PostgreSQL the easy way.
 This small tool abstract all the hassles and swearing you normally
 have to deal with when you just want to dump some data into the database.
